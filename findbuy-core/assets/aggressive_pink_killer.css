@@ -1,0 +1,243 @@
+/* 
+    ASESINO AGRESIVO DE ROSA
+    Sobrescribe forzosamente cualquier color rosa/rojo persistente con Colores de Marca.
+    Naranja de Marca: #FA8063 / #C05621 (Más oscuro)
+    Verde Azulado de Marca: #38B2AC / #2C7A7B (Más oscuro)
+    Azul de Marca: #2D3748
+    Rojo Oferta: #E53E3E (Restaurado)
+*/
+
+/* --- ENLACES Y TEXTO GLOBAL --- */
+html body a:hover {
+    color: #FA8063 !important;
+}
+
+/* --- MENSAJES Y ALERTAS WOOCOMMERCE --- */
+html body .woocommerce-error,
+html body .woocommerce-info,
+html body .woocommerce-message,
+html body .woocommerce-NoticeGroup {
+    border-top-color: #FA8063 !important;
+}
+
+html body .woocommerce-error::before,
+html body .woocommerce-info::before,
+html body .woocommerce-message::before {
+    color: #FA8063 !important;
+}
+
+html body .woocommerce-error {
+    background-color: #FFF5F5 !important;
+    color: #C05621 !important;
+}
+
+html body .woocommerce-info {
+    border-top-color: #2D3748 !important;
+    background-color: #E6FFFA !important;
+    color: #2C7A7B !important;
+}
+
+html body .woocommerce-info::before {
+    color: #2C7A7B !important;
+}
+
+/* --- INSIGNIAS DE OFERTA (RESTAURADAS A ROJO) --- */
+html body .onsale,
+html body .woocommerce span.onsale,
+html body .badge-sale {
+    background-color: #E53E3E !important;
+    /* ROJO */
+    color: #ffffff !important;
+}
+
+/* --- PRECIOS --- */
+html body .price ins,
+html body .amount {
+    color: #FA8063 !important;
+}
+
+html body .price del,
+html body .price del .amount {
+    color: #A0AEC0 !important;
+}
+
+/* --- ESTILOS DE BLOG (General) --- */
+html body .post-title a:hover,
+html body .entry-title a:hover,
+html body .blog-title a:hover,
+html body h1 a:hover,
+html body h2 a:hover,
+html body h3 a:hover,
+html body h4 a:hover {
+    color: #FA8063 !important;
+}
+
+html body .read-more,
+html body .read-more-link,
+html body .entry-read-more,
+html body .ast-read-more {
+    color: #FA8063 !important;
+}
+
+html body .read-more:hover,
+html body .read-more-link:hover,
+html body .entry-read-more:hover,
+html body .ast-read-more:hover {
+    color: #C05621 !important;
+    text-decoration: underline !important;
+}
+
+/* --- SOBRESCRITURAS CHATBOT --- */
+html body #findbuy-chat-launcher:hover {
+    background-color: #FA8063 !important;
+}
+
+/* --- ARREGLO BOTÓN ENVIAR CHATBOT --- */
+html body #chat-send-btn,
+html body .chat-send-btn {
+    background-color: #FA8063 !important;
+    border-radius: 8px !important;
+    width: 44px !important;
+    padding: 0 !important;
+    transition: all 0.3s ease !important;
+}
+
+html body #chat-send-btn svg,
+html body .chat-send-btn svg {
+    fill: #ffffff !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+
+html body #chat-send-btn:hover,
+html body .chat-send-btn:hover {
+    background-color: #C05621 !important;
+    /* Naranja más oscuro al pasar el mouse */
+}
+
+/* --- BOTÓN CERRAR CHATBOT --- */
+/* Transparente (Cabecera Azul) por Defecto. Naranja SOLO al pasar el mouse. */
+html body .chat-close,
+html body .findbuy-chat-window .chat-header .chat-close {
+    background-color: transparent !important;
+    color: #ffffff !important;
+    opacity: 0.8 !important;
+    border-radius: 4px !important;
+    padding: 2px 8px !important;
+    margin-left: 10px !important;
+    transition: all 0.3s ease !important;
+}
+
+html body .chat-close:hover {
+    background-color: #FA8063 !important;
+    /* SOLO Naranja al pasar el mouse */
+    opacity: 1 !important;
+}
+
+
+/* --- INSIGNIA MINI CARRITO --- */
+html body .ast-cart-menu-wrap .count,
+html body .ast-cart-menu-wrap .count:after,
+html body .woocommerce-mini-cart__total .amount,
+html body .widget_shopping_cart .total .amount {
+    color: #FA8063 !important;
+    border-color: #FA8063 !important;
+}
+
+html body .ast-site-header-cart .ast-cart-menu-wrap .count,
+html body .ast-site-header-cart .ast-cart-menu-wrap .count:after {
+    background-color: #FA8063 !important;
+    color: #ffffff !important;
+}
+
+/* --- ENTRADAS DE ERROR --- */
+html body input.error,
+html body textarea.error,
+html body select.error,
+html body .woocommerce-invalid input {
+    border-color: #FA8063 !important;
+    box-shadow: 0 0 0 1px #FA8063 !important;
+}
+
+/* --- ELIMINACIÓN ESPECÍFICA DE ROSA --- */
+html body [style*="#CC3366"],
+html body [style*="#cc3366"],
+html body .pink-bg,
+html body .bg-pink {
+    background-color: #FA8063 !important;
+}
+
+html body [style*="color: #CC3366"],
+html body [style*="color:#cc3366"],
+html body .pink-text,
+html body .text-pink {
+    color: #FA8063 !important;
+}
+
+/* Enlaces de Formulario de Comentarios (Editar Perfil, Cerrar Sesión) */
+html body .logged-in-as a,
+html body #reply-title small a {
+    color: #FA8063 !important;
+}
+
+
+/* --- TÍTULO PRODUCTO MINI CARRITO --- */
+html body .woocommerce-mini-cart-item a,
+html body .product-title,
+html body .widget_shopping_cart_content a:not(.button) {
+    color: #2D3748 !important;
+    font-weight: 600 !important;
+}
+
+html body .woocommerce-mini-cart-item a:hover,
+html body .widget_shopping_cart_content a:not(.button):hover {
+    color: #FA8063 !important;
+}
+
+/* --- ARREGLO BOTONES MINI CARRITO (REVERTIDO) --- */
+/*
+html body .woocommerce-mini-cart__buttons .button,
+html body .widget_shopping_cart_content .button {
+    background-color: #2D3748 !important;
+    color: #FA8063 !important;
+    font-weight: bold !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+
+html body .woocommerce-mini-cart__buttons .button:hover,
+html body .widget_shopping_cart_content .button:hover {
+    background-color: #FA8063 !important;
+    color: #ffffff !important;
+}
+*/
+
+/* --- ARREGLO PAGINACIÓN --- */
+/* Estado por defecto: Fondo Azul Marino, Texto Blanco */
+html body .woocommerce-pagination .page-numbers li a,
+html body .woocommerce-pagination .page-numbers li span {
+    background-color: #2D3748 !important;
+    /* Azul Marino */
+    color: #ffffff !important;
+    border-color: #2D3748 !important;
+    border-radius: 50% !important;
+    display: block;
+    padding: 0.5em;
+    /* Asegurar algo de espaciado */
+}
+
+html body .woocommerce-pagination .page-numbers li span.current,
+html body .woocommerce-pagination .page-numbers li a:hover,
+html body .woocommerce-pagination .page-numbers li span:hover {
+    color: #ffffff !important;
+    background-color: #FA8063 !important;
+    /* Naranja al pasar el mouse/Activo */
+    border-color: #FA8063 !important;
+}
+
+/* Prevenir que el contenedor tenga fondo */
+html body .woocommerce-pagination .page-numbers,
+html body ul.page-numbers {
+    background-color: transparent !important;
+    border: none !important;
+}

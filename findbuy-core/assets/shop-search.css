@@ -1,0 +1,55 @@
+/* Estilos para el desplegable de búsqueda en la Tienda */
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 9999;
+    /* Muy alto para estar encima de todo */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.search-suggestions.visible {
+    display: block;
+}
+
+.suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f7fafc;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s;
+    background: #fff;
+    color: #2d3748;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background-color: #EDF2F7;
+}
+
+.suggestion-thumb {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+}
+
+/* Asegurar que el contenedor del buscador tenga contexto de posición */
+.findbuy-product-search,
+.woocommerce-product-search {
+    position: relative;
+}

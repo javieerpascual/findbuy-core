@@ -1,0 +1,232 @@
+/* ---------------------------------------------------------
+   NEW: Carrusel Scroll-Snap para Página de Contacto
+   --------------------------------------------------------- */
+.contact-carousel-section {
+    margin-top: 80px;
+    margin-bottom: 80px;
+    position: relative;
+    max-width: 1400px;
+    /* Más ancho para ajustar más tarjetas */
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 60px;
+    /* Espacio para flechas */
+}
+
+.contact-carousel-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #2D3748;
+    margin-bottom: 50px;
+    font-weight: 700;
+}
+
+.stores-carousel {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    gap: 30px;
+    padding: 20px 10px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE */
+    scroll-behavior: smooth;
+    align-items: stretch;
+    /* Hacer tarjetas de misma altura */
+}
+
+.stores-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+/* Botones de Navegación */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #fff !important;
+    border: 1px solid #E2E8F0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    z-index: 20;
+    color: #2D3748 !important;
+    font-size: 20px;
+}
+
+.carousel-btn:hover {
+    background: #2D3748 !important;
+    color: #FA8063 !important;
+    border-color: #2D3748;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn.prev {
+    left: 10px;
+}
+
+.carousel-btn.next {
+    right: 10px;
+}
+
+/* Estilo de Tarjeta - Coincidiendo Imagen de Referencia 2 */
+.carousel-item {
+    flex: 0 0 320px;
+    /* Ancho fijo */
+    max-width: 320px;
+    background: #fff;
+    border-radius: 20px;
+    /* Aspecto redondeado premium */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    scroll-snap-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.carousel-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.carousel-img {
+    height: 180px;
+    overflow: hidden;
+    position: relative;
+}
+
+.carousel-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.carousel-item:hover .carousel-img img {
+    transform: scale(1.05);
+}
+
+.carousel-map {
+    height: 140px;
+    width: 100%;
+    border-top: 1px solid #EDF2F7;
+    border-bottom: 1px solid #EDF2F7;
+}
+
+.carousel-map iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    filter: grayscale(20%);
+    /* Ligera escala de grises para aspecto más limpio */
+    transition: filter 0.3s;
+    display: block;
+}
+
+.carousel-map:hover iframe {
+    filter: grayscale(0%);
+}
+
+.carousel-info {
+    padding: 25px;
+    text-align: center;
+    flex-grow: 1;
+    /* Empuja contenido para llenar altura */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.carousel-info h3 {
+    margin: 0 0 20px 0;
+    color: #2D3748;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.carousel-actions {
+    margin-top: auto;
+}
+
+.btn-dark {
+    display: block;
+    width: 100%;
+    padding: 14px 0;
+    background: #2D3748;
+    /* Color oscuro premium */
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    text-align: center;
+    border: 2px solid transparent;
+}
+
+.btn-dark:hover {
+    background: #2D3748;
+    /* Mantener fondo oscuro */
+    color: #FA8063;
+    /* Texto se vuelve Naranja */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(45, 55, 72, 0.2);
+    border-color: #FA8063;
+    /* Borde opcional pop */
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .contact-carousel-section {
+        padding: 0 20px;
+    }
+
+    .carousel-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .carousel-item {
+        flex: 0 0 280px;
+        max-width: 280px;
+    }
+}
+
+/* ---------------------------------------------------------
+   REFINAMIENTOS: Márgenes y Bordes (Solicitud de Usuario)
+   --------------------------------------------------------- */
+
+/* Aumentar Márgenes a 120px */
+.findbuy-contact-container {
+    margin: 0 auto 120px auto !important;
+}
+
+body.single-post .site-content,
+body.single-post #content {
+    padding-top: 120px !important;
+    padding-bottom: 120px !important;
+}
+
+body.woocommerce-account .site-content {
+    padding-top: 120px !important;
+    padding-bottom: 120px !important;
+}
+
+/* Eliminar Bordes (Aspecto Más Limpio) */
+.contact-info-card,
+.contact-form-card,
+.woocommerce-account .woocommerce {
+    border: none !important;
+    /* Asegurar que la sombra es la única definición */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05) !important;
+}

@@ -1,0 +1,144 @@
+/* ---------------------------------------------------------
+   NUEVO: CARRUSEL RICO (Imagen + Mapa + Botones)
+   --------------------------------------------------------- */
+.contact-carousel-section {
+    margin-top: 100px;
+    margin-bottom: 60px;
+}
+
+.contact-carousel-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #2D3748;
+    margin-bottom: 40px;
+}
+
+.stores-carousel {
+    display: flex;
+    overflow-x: auto;
+    gap: 30px;
+    padding: 20px 5px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.stores-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.carousel-item {
+    flex: 0 0 320px;
+    /* Tarjeta más ancha */
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+    /* Sombra Suave */
+    overflow: hidden;
+    scroll-snap-align: center;
+    transition: transform 0.3s ease;
+    border: 1px solid #E2E8F0;
+    /* Borde claro limpio */
+}
+
+.carousel-item:hover {
+    transform: translateY(-5px);
+}
+
+.carousel-img img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+.carousel-map iframe {
+    width: 100%;
+    height: 140px;
+    display: block;
+    border: none;
+}
+
+.carousel-info {
+    padding: 20px;
+    text-align: center;
+}
+
+.carousel-info h3 {
+    margin: 0 0 15px 0;
+    color: #2D3748;
+    font-size: 1.4rem;
+}
+
+.carousel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-dark {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #2D3748;
+    /* Azul Oscuro */
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-align: center;
+    transition: background 0.2s;
+}
+
+.btn-dark:hover {
+    background: #4A5568;
+    color: #fff;
+}
+
+/* ---------------------------------------------------------
+   ARREGLOS AGRESIVOS: Cuenta y Márgenes
+   --------------------------------------------------------- */
+
+/* 1. Interruptor de Borde de Cuenta */
+.woocommerce-account .woocommerce,
+.woocommerce-account .col-1,
+.woocommerce-account .col-2,
+.woocommerce-account .woocommerce-MyAccount-navigation,
+.woocommerce-account .woocommerce-MyAccount-content {
+    border: none !important;
+    box-shadow: none !important;
+    /* Empezar limpio */
+    background: transparent !important;
+    /* Eliminar bloques de fondo */
+}
+
+/* Re-aplicar tarjeta agradable SOLO al contenido del envoltorio principal si es necesario, 
+   O dejarlo limpio según solicitud de usuario 'sin borde negro'. 
+   Mantengamos el CONTENIDO blanco limpio. */
+
+.woocommerce-account .woocommerce-MyAccount-content {
+    background: #fff !important;
+    padding: 40px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    /* Solo Sombra Suave */
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation {
+    /* Opcional: Estilar nav por separado */
+}
+
+/* 2. Fuerza de Márgenes Masivos */
+body.woocommerce-account #primary,
+body.woocommerce-account #main,
+body.woocommerce-account .site-content,
+body.single-post #primary,
+body.single-post #main,
+body.single-post .site-content,
+.findbuy-contact-container {
+    margin-top: 60px !important;
+    margin-bottom: 120px !important;
+    padding-top: 60px !important;
+    padding-bottom: 120px !important;
+}

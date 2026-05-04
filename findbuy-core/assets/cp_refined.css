@@ -1,0 +1,38 @@
+/* Localizador CP Refinado (Sobrescritura Tema Azul) */
+.cp-search-container {
+    max-width: 700px !important;
+    margin: 0 auto 60px auto !important;
+    padding: 50px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+.cp-search-container p {
+    margin-bottom: 35px !important;
+}
+
+.cp-input-group {
+    display: flex;
+    gap: 15px !important;
+    align-items: center !important;
+    margin-bottom: 25px !important;
+}
+
+#cp-input {
+    padding: 15px 20px !important;
+    border: 2px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+    width: 250px !important;
+}
+
+#cp-check-btn {
+    background: #2D3748 !important;
+    /* Azul Oscuro */
+    padding: 15px 35px !important;
+    border-radius: 8px !important;
+}
+
+#cp-check-btn:hover {
+    background: #1A202C !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

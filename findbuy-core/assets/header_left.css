@@ -1,0 +1,8 @@
+/* Alinear Cabecera de Tiendas a la Izquierda */
+.stores-header {
+    text-align: left !important;
+    max-width: 800px !important;
+    margin: 0 auto 30px auto !important;
+    padding: 0 60px !important;
+    /* Coincidir relleno de caja de búsqueda */
+}

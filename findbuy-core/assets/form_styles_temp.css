@@ -1,0 +1,104 @@
+/* Formulario de Entrada de Invitado */
+.guest-post-wrapper {
+    background: #f7fafc;
+    padding: 40px;
+    border-radius: 12px;
+    margin-bottom: 60px;
+    border: 1px solid #e2e8f0;
+}
+
+.guest-form h3 {
+    margin-bottom: 20px;
+    color: #2D3748;
+}
+
+.guest-form p {
+    color: #718096;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #4A5568;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 1rem;
+    color: #2D3748;
+}
+
+.form-group input[type="file"] {
+    background: #fff;
+    padding: 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    width: 100%;
+}
+
+.btn-write-post {
+    background: transparent;
+    border: 2px solid #FA8063;
+    color: #FA8063;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-write-post:hover {
+    background: #FA8063;
+    color: #fff;
+}
+
+.btn-submit-post {
+    background: #2D3748;
+    color: #fff;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.btn-submit-post:hover {
+    background: #4A5568;
+}
+
+/* Marcadores de posición de respaldo */
+.featured-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f6ad55 0%, #fa8063 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+.card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+}

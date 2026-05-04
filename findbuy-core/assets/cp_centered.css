@@ -1,0 +1,67 @@
+/* Localizador CP Refinado (Sobrescritura Tema Azul - Centrado FINAL) */
+.cp-search-container {
+    max-width: 800px !important;
+    margin: 0 auto 60px auto !important;
+    padding: 50px 60px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+    text-align: center !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center !important;
+}
+
+.cp-search-container h3 {
+    font-size: 2rem !important;
+    margin-bottom: 15px !important;
+    color: #2D3748 !important;
+}
+
+.cp-search-container p {
+    margin-bottom: 30px !important;
+    font-size: 1.1rem !important;
+    max-width: 600px !important;
+    color: #718096 !important;
+}
+
+.cp-input-group {
+    display: flex;
+    gap: 15px !important;
+    align-items: center !important;
+    margin-bottom: 10px !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+#cp-input {
+    padding: 15px 25px !important;
+    border: 2px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+    width: 320px !important;
+    font-size: 1.1rem !important;
+    text-align: center !important;
+}
+
+#cp-check-btn {
+    background: #2D3748 !important;
+    /* Azul Oscuro */
+    border: 2px solid #FA8063 !important;
+    padding: 15px 40px !important;
+    border-radius: 8px !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    transition: all 0.3s ease !important;
+}
+
+#cp-check-btn:hover {
+    background: #2D3748 !important;
+    color: #FA8063 !important;
+    box-shadow: 0 10px 20px rgba(45, 55, 72, 0.2) !important;
+    transform: translateY(-3px);
+}
+
+#cp-result-message {
+    text-align: center !important;
+    margin-top: 15px;
+    font-size: 1.05rem;
+}
