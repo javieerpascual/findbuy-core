@@ -1456,6 +1456,12 @@ add_filter('show_admin_bar', '__return_false');
             tooltip.classList.remove('visible');
         });
 
+        // Ocultar tooltip al hacer scroll (móvil y escritorio)
+        window.addEventListener('scroll', function () {
+            clearTimeout(tooltipTimeout);
+            tooltip.classList.remove('visible');
+        }, { passive: true });
+
         zones.forEach(zone => {
             zone.addEventListener('mouseenter', (e) => {
                 clearTimeout(tooltipTimeout);

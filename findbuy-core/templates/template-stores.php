@@ -39,8 +39,7 @@ get_header();
             <div class="store-info">
                 <h3>Zaragoza</h3>
                 <div class="store-actions">
-                    <a href="https://www.google.com/maps?q=41.6480,-0.8891" target="_blank" class="btn-map">Ver en
-                        Mapa</a>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=41.6480,-0.8891" target="_blank" class="btn-map">Ver en Mapa</a>
                     <a href="<?php echo esc_url(home_url('/croquis-tienda/?store=Zaragoza')); ?>"
                         class="btn-store">Acceder al Comercio</a>
                 </div>
@@ -61,8 +60,7 @@ get_header();
             <div class="store-info">
                 <h3>Logroño</h3>
                 <div class="store-actions">
-                    <a href="https://www.google.com/maps?q=42.4669,-2.4480" target="_blank" class="btn-map">Ver en
-                        Mapa</a>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=42.4669,-2.4480" target="_blank" class="btn-map">Ver en Mapa</a>
                     <a href="<?php echo esc_url(home_url('/croquis-tienda/?store=Logroño')); ?>"
                         class="btn-store">Acceder al Comercio</a>
                 </div>
@@ -83,8 +81,7 @@ get_header();
             <div class="store-info">
                 <h3>Madrid</h3>
                 <div class="store-actions">
-                    <a href="https://www.google.com/maps?q=40.4168,-3.7038" target="_blank" class="btn-map">Ver en
-                        Mapa</a>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=40.4168,-3.7038" target="_blank" class="btn-map">Ver en Mapa</a>
                     <a href="<?php echo esc_url(home_url('/croquis-tienda/?store=Madrid')); ?>"
                         class="btn-store">Acceder al Comercio</a>
                 </div>
@@ -105,8 +102,7 @@ get_header();
             <div class="store-info">
                 <h3>Valencia</h3>
                 <div class="store-actions">
-                    <a href="https://www.google.com/maps?q=39.4699,-0.3763" target="_blank" class="btn-map">Ver en
-                        Mapa</a>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=39.4699,-0.3763" target="_blank" class="btn-map">Ver en Mapa</a>
                     <a href="<?php echo esc_url(home_url('/croquis-tienda/?store=Valencia')); ?>"
                         class="btn-store">Acceder al Comercio</a>
                 </div>
@@ -202,7 +198,10 @@ get_header();
 
                         if (foundStore) {
                             foundStore.classList.add('highlighted');
-                            foundStore.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // Scroll automático con pausa de 2s para que se lea el mensaje
+                            setTimeout(function () {
+                                foundStore.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 2000);
 
                             if (isExact) {
                                 resultMsg.textContent = '¡Buenas noticias! Tenemos tienda disponible en ' + storeName + ' (' + data.municipio + ').';

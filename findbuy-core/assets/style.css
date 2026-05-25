@@ -1112,11 +1112,9 @@ textarea {
 	padding: 50px 60px !important;
 	box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
 	text-align: center !important;
-	/* CENTERED */
 	display: flex;
 	flex-direction: column;
 	align-items: center !important;
-	/* CENTRADO */
 }
 
 .cp-search-container h3 {
@@ -1138,7 +1136,6 @@ textarea {
 	align-items: center !important;
 	margin-bottom: 10px !important;
 	justify-content: center !important;
-	/* CENTRADO */
 	width: 100% !important;
 }
 
@@ -1149,29 +1146,58 @@ textarea {
 	width: 320px !important;
 	font-size: 1.1rem !important;
 	text-align: center !important;
-	/* Texto CENTRADO */
 }
 
 #cp-check-btn {
 	background: #2D3748 !important;
-	/* Azul Oscuro */
 	border: 2px solid #FA8063 !important;
-	/* Borde Naranja */
 	padding: 15px 40px !important;
 	border-radius: 8px !important;
 	color: #fff !important;
 	font-weight: 700 !important;
 	font-size: 1.1rem !important;
 	transition: all 0.3s ease !important;
+	white-space: nowrap !important;
 }
 
 #cp-check-btn:hover {
 	background: #2D3748 !important;
-	/* MANTENER AZUL */
 	color: #FA8063 !important;
-	/* TEXTO NARANJA */
 	box-shadow: 0 10px 20px rgba(45, 55, 72, 0.2) !important;
 	transform: translateY(-3px);
+}
+
+/* === Móvil: CP validator responsive === */
+@media (max-width: 600px) {
+	.cp-search-container {
+		padding: 30px 20px !important;
+		margin: 0 12px 40px 12px !important;
+	}
+	.cp-search-container h3 {
+		font-size: 1.4rem !important;
+	}
+	.cp-search-container p {
+		font-size: 0.95rem !important;
+		margin-bottom: 20px !important;
+	}
+	.cp-input-group {
+		flex-direction: column !important;
+		gap: 10px !important;
+	}
+	#cp-input {
+		width: 100% !important;
+		font-size: 1rem !important;
+		padding: 12px 15px !important;
+	}
+	#cp-check-btn {
+		width: 100% !important;
+		padding: 13px 20px !important;
+		font-size: 1rem !important;
+	}
+	#cp-result-message {
+		font-size: 0.9rem !important;
+		text-align: left !important;
+	}
 }
 
 #cp-result-message {
