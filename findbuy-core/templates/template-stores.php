@@ -121,15 +121,18 @@ get_header();
         var cpInput = document.getElementById('cp-input');
         var resultMsg = document.getElementById('cp-result-message');
         var storeCards = document.querySelectorAll('.store-card');
+        var resultLocked = false;  // verdadero mientras el mensaje de CP debe mantenerse fijo
+        var lockTimer = null;       // temporizador del bloqueo
 
         checkBtn.addEventListener('click', validateCP);
         cpInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') validateCP();
         });
 
-        // Efecto Hover
+        // Efecto Hover — solo si el mensaje de resultado no está bloqueado
         storeCards.forEach(function (card) {
             card.addEventListener('mouseenter', function () {
+                if (resultLocked) return; // respetar el bloqueo del mensaje CP
                 var name = card.querySelector('h3').textContent;
                 resultMsg.textContent = 'Viendo tienda: ' + name;
                 resultMsg.className = '';
@@ -139,7 +142,7 @@ get_header();
 
             card.addEventListener('mouseleave', function () {
                 if (!card.classList.contains('highlighted')) {
-                    resultMsg.textContent = '';
+                    if (!resultLocked) resultMsg.textContent = '';
                     card.style.transform = '';
                 }
             });
@@ -201,32 +204,52 @@ get_header();
                             foundStore.classList.add('highlighted');
                             foundStore.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
+                            // URL de la tienda para el auto-redirect
+                            var storeBtn = foundStore.querySelector('.btn-store');
+                            var storeUrl = storeBtn ? storeBtn.href : null;
+
                             if (isExact) {
-                                // Mensaje de Coincidencia Exacta
                                 resultMsg.textContent = '¡Buenas noticias! Tenemos tienda disponible en ' + storeName + ' (' + data.municipio + ').';
                                 resultMsg.className = 'success';
-
                                 foundStore.style.transform = 'scale(1.05)';
-                                foundStore.style.transform = 'scale(1.05)';
-                                foundStore.style.border = '2px solid #FA8063'; // Sólido para "Exacto"
+                                foundStore.style.border = '2px solid #FA8063';
                                 foundStore.style.boxShadow = '0 10px 25px rgba(250, 128, 99, 0.25)';
                             } else {
-                                // Mensaje de Coincidencia Vecina
                                 resultMsg.textContent = 'No tenemos tienda en ' + data.municipio + ' (' + data.provincia + '), pero tu tienda Find&Buy más cercana es: ' + storeName + '.';
-                                resultMsg.className = 'warning'; // Clase CSS para texto amarillo/naranja
-
+                                resultMsg.className = 'warning';
                                 foundStore.style.transform = 'scale(1.05)';
-                                foundStore.style.border = '2px dashed #FA8063'; // Discontinuo para "Cercano"
+                                foundStore.style.border = '2px dashed #FA8063';
                                 foundStore.style.boxShadow = '0 10px 25px rgba(250, 128, 99, 0.15)';
                             }
 
-                            // Eliminar resaltado después de 4 segundos
-                            setTimeout(function () {
-                                foundStore.style.transform = '';
-                                foundStore.style.border = '';
-                                foundStore.style.boxShadow = '';
-                                foundStore.classList.remove('highlighted');
-                            }, 4000);
+                            // Countdown + auto-redirect a la tienda
+                            if (storeUrl) {
+                                var seconds = 4;
+                                var baseMsg = resultMsg.textContent;
+                                resultLocked = true;
+                                clearTimeout(lockTimer);
+
+                                var countInterval = setInterval(function () {
+                                    seconds--;
+                                    if (seconds > 0) {
+                                        resultMsg.textContent = baseMsg + ' Accediendo en ' + seconds + '...';
+                                    } else {
+                                        clearInterval(countInterval);
+                                        window.location.href = storeUrl;
+                                    }
+                                }, 1000);
+                            } else {
+                                // Sin URL: comportamiento anterior (resaltado 8 s)
+                                resultLocked = true;
+                                clearTimeout(lockTimer);
+                                lockTimer = setTimeout(function () {
+                                    foundStore.style.transform = '';
+                                    foundStore.style.border = '';
+                                    foundStore.style.boxShadow = '';
+                                    foundStore.classList.remove('highlighted');
+                                    resultLocked = false;
+                                }, 8000);
+                            }
 
                         } else {
                             // No debería ocurrir si el mapeo cubre todo

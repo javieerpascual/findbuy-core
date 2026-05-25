@@ -725,7 +725,21 @@ add_filter('show_admin_bar', '__return_false');
             }
         }
 
-        /* ===== A* Route Overlay ===== */
+        /* ========================================================
+           NAVIGATION SYSTEM - Chincheta + Pathfinding
+           ======================================================== */
+        #map-pin {
+            position: absolute;
+            width: 28px;
+            height: 40px;
+            transform: translate(-50%, -100%);
+            z-index: 50;
+            pointer-events: none;
+            display: none;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+            transition: left 0.15s ease, top 0.15s ease;
+        }
+
         #route-svg {
             position: absolute;
             top: 0;
@@ -733,25 +747,45 @@ add_filter('show_admin_bar', '__return_false');
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 15;
+            z-index: 25;
             overflow: visible;
         }
-        .route-line {
+
+        .route-solid {
             fill: none;
             stroke: #FA8063;
-            stroke-width: 3;
+            stroke-width: 5;
             stroke-linecap: round;
             stroke-linejoin: round;
-            stroke-dasharray: 3000;
-            stroke-dashoffset: 3000;
-            animation: draw-route 1.2s ease-out forwards;
+            filter: drop-shadow(0 0 5px rgba(250, 128, 99, 0.85));
         }
-        @keyframes draw-route {
-            to { stroke-dashoffset: 0; }
+
+        .route-dash-overlay {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.7);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-dasharray: 7 13;
+            animation: nav-dash 0.6s linear infinite;
         }
-        .entry-dot { fill: #2d3748; }
-        .pin-bg { fill: #FA8063; }
-        /* ===== Tooltip Móvil ===== */
+
+        @keyframes nav-dash {
+            to {
+                stroke-dashoffset: -20;
+            }
+        }
+
+        #nav-hint {
+            font-size: 0.78rem;
+            color: #718096;
+            text-align: center;
+            padding: 5px 10px;
+            background: #EDF2F7;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        /* Tooltip adaptativo en móvil */
         @media (max-width: 768px) {
             .custom-tooltip {
                 max-width: calc(100vw - 32px) !important;
@@ -924,13 +958,24 @@ add_filter('show_admin_bar', '__return_false');
                     );
                 }
                 ?>
-                <svg id="route-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                <!-- SVG para ruta de navegación -->
+                <svg id="route-svg">
+                    <path id="route-solid" class="route-solid" style="display:none" />
+                    <path id="route-dash" class="route-dash-overlay" style="display:none" />
+                </svg>
+
+                <!-- Chincheta / pin de posición actual -->
+                <img id="map-pin"
+                    src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 36'%3E%3Cellipse cx='12' cy='34' rx='4' ry='2' fill='rgba(0%2C0%2C0%2C0.25)'/%3E%3Cpath d='M12 1 C6.5 1 2 5.5 2 11 C2 19.5 12 33 12 33 C12 33 22 19.5 22 11 C22 5.5 17.5 1 12 1Z' fill='%23e53e3e'/%3E%3Cpath d='M12 1 C6.5 1 2 5.5 2 11 C2 19.5 12 33 12 33 C12 33 22 19.5 22 11 C22 5.5 17.5 1 12 1Z' fill='none' stroke='rgba(255%2C255%2C255%2C0.4)' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='11' r='4.5' fill='%23fff'/%3E%3C/svg%3E"
+                    alt="Mi posición actual">
 
             </div>
 
             <div id="location-msg" class="location-message">
                 Selecciona "Cómo llegar" en un producto para ver su ubicación exacta.
             </div>
+            <div id="nav-hint">📍 Toca el mapa para marcar dónde estás ahora</div>
         </div>
 
         <!-- Barra Lateral -->
@@ -991,167 +1036,6 @@ add_filter('show_admin_bar', '__return_false');
 
         let shoppingList = [];
         let currentCategoryFilter = 'all';
-
-        // ===== A* PATHFINDING =====
-        const GRID = 100;
-
-        function buildObstacleGrid() {
-            const grid = [];
-            for (let i = 0; i < GRID; i++) grid.push(new Uint8Array(GRID));
-            zones.forEach(zone => {
-                const t = parseFloat(zone.style.top);
-                const l = parseFloat(zone.style.left);
-                const w = parseFloat(zone.style.width);
-                const h = parseFloat(zone.style.height);
-                const r0 = Math.ceil(t) + 1,  r1 = Math.floor(t + h) - 1;
-                const c0 = Math.ceil(l) + 1,  c1 = Math.floor(l + w) - 1;
-                for (let r = Math.max(0, r0); r <= Math.min(GRID - 1, r1); r++)
-                    for (let c = Math.max(0, c0); c <= Math.min(GRID - 1, c1); c++)
-                        grid[r][c] = 1;
-            });
-            return grid;
-        }
-
-        function astar(grid, sr, sc, er, ec) {
-            const INF = 1e9;
-            const g = [], parent = [];
-            for (let i = 0; i < GRID; i++) {
-                g.push(new Float32Array(GRID).fill(INF));
-                parent.push(new Array(GRID).fill(null));
-            }
-            g[sr][sc] = 0;
-            const open = [[Math.abs(sr - er) + Math.abs(sc - ec), sr, sc]];
-            const dirs = [[0,1,1],[0,-1,1],[1,0,1],[-1,0,1],[1,1,1.414],[1,-1,1.414],[-1,1,1.414],[-1,-1,1.414]];
-            while (open.length) {
-                let mi = 0;
-                for (let i = 1; i < open.length; i++) if (open[i][0] < open[mi][0]) mi = i;
-                const [, r, c] = open.splice(mi, 1)[0];
-                if (r === er && c === ec) {
-                    const path = [];
-                    let cur = [r, c];
-                    while (cur) { path.unshift(cur); cur = parent[cur[0]][cur[1]]; }
-                    return path;
-                }
-                for (const [dr, dc, cost] of dirs) {
-                    const nr = r + dr, nc = c + dc;
-                    if (nr < 0 || nr >= GRID || nc < 0 || nc >= GRID || grid[nr][nc]) continue;
-                    const ng = g[r][c] + cost;
-                    if (ng < g[nr][nc]) {
-                        g[nr][nc] = ng;
-                        parent[nr][nc] = [r, c];
-                        open.push([ng + Math.abs(nr - er) + Math.abs(nc - ec), nr, nc]);
-                    }
-                }
-            }
-            return null;
-        }
-
-        function findNearestWalkable(grid, r, c) {
-            r = Math.max(0, Math.min(GRID - 1, r));
-            c = Math.max(0, Math.min(GRID - 1, c));
-            if (!grid[r][c]) return [r, c];
-            const visited = new Set([`${r},${c}`]);
-            const q = [[r, c]];
-            const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
-            while (q.length) {
-                const [cr, cc] = q.shift();
-                for (const [dr, dc] of dirs) {
-                    const nr = cr + dr, nc = cc + dc;
-                    if (nr < 0 || nr >= GRID || nc < 0 || nc >= GRID) continue;
-                    const key = `${nr},${nc}`;
-                    if (visited.has(key)) continue;
-                    visited.add(key);
-                    if (!grid[nr][nc]) return [nr, nc];
-                    q.push([nr, nc]);
-                }
-            }
-            return [r, c];
-        }
-
-        function simplifyPath(path, step) {
-            if (path.length <= 2) return path;
-            const res = [path[0]];
-            for (let i = step; i < path.length - 1; i += step) res.push(path[i]);
-            res.push(path[path.length - 1]);
-            return res;
-        }
-
-        function clearRoute() {
-            const svg = document.getElementById('route-svg');
-            if (svg) while (svg.firstChild) svg.removeChild(svg.firstChild);
-        }
-
-        function drawRoute(targetZone) {
-            const svg = document.getElementById('route-svg');
-            while (svg.firstChild) svg.removeChild(svg.firstChild);
-            if (!targetZone) return;
-
-            const wrapper = document.querySelector('.croquis-wrapper');
-            const wW = wrapper.offsetWidth;
-            const wH = wrapper.offsetHeight;
-            function px(pctLeft, pctTop) {
-                return [pctLeft / 100 * wW, pctTop / 100 * wH];
-            }
-
-            const ENTRY_TOP = 91, ENTRY_LEFT = 50;
-
-            const zTop  = parseFloat(targetZone.style.top);
-            const zLeft = parseFloat(targetZone.style.left);
-            const zW    = parseFloat(targetZone.style.width);
-            const zH    = parseFloat(targetZone.style.height);
-            const destTop  = zTop + zH / 2;
-            const destLeft = zLeft + zW / 2;
-
-            const grid = buildObstacleGrid();
-            const sr = Math.round(ENTRY_TOP), sc = Math.round(ENTRY_LEFT);
-            const [er, ec] = findNearestWalkable(grid, Math.round(destTop), Math.round(destLeft));
-
-            const rawPath = astar(grid, sr, sc, er, ec);
-            const path = rawPath ? simplifyPath(rawPath, 4) : [[sr, sc], [er, ec]];
-
-            // Polyline animada
-            const pts = path.map(([r, c]) => { const [x, y] = px(c, r); return `${x},${y}`; }).join(' ');
-            const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-            poly.setAttribute('points', pts);
-            poly.classList.add('route-line');
-            svg.appendChild(poly);
-
-            // Punto de entrada
-            const [ex, ey] = px(ENTRY_LEFT, ENTRY_TOP);
-            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            dot.setAttribute('cx', ex); dot.setAttribute('cy', ey); dot.setAttribute('r', 5);
-            dot.classList.add('entry-dot');
-            svg.appendChild(dot);
-
-            // Chincheta en destino
-            const [dx, dy] = px(destLeft, destTop);
-
-            const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            ring.setAttribute('cx', dx); ring.setAttribute('cy', dy); ring.setAttribute('r', 8);
-            ring.setAttribute('fill', 'rgba(250,128,99,0.3)');
-            const animR = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-            animR.setAttribute('attributeName', 'r'); animR.setAttribute('values', '8;22;8');
-            animR.setAttribute('dur', '1.5s'); animR.setAttribute('repeatCount', 'indefinite');
-            const animO = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-            animO.setAttribute('attributeName', 'opacity'); animO.setAttribute('values', '0.8;0;0.8');
-            animO.setAttribute('dur', '1.5s'); animO.setAttribute('repeatCount', 'indefinite');
-            ring.appendChild(animR); ring.appendChild(animO);
-            svg.appendChild(ring);
-
-            const pinC = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            pinC.setAttribute('cx', dx); pinC.setAttribute('cy', dy); pinC.setAttribute('r', 9);
-            pinC.setAttribute('fill', '#FA8063');
-            pinC.setAttribute('stroke', '#fff'); pinC.setAttribute('stroke-width', '2');
-            svg.appendChild(pinC);
-
-            const pinT = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            pinT.setAttribute('x', dx); pinT.setAttribute('y', dy + 4);
-            pinT.setAttribute('text-anchor', 'middle');
-            pinT.setAttribute('font-size', '11'); pinT.setAttribute('font-weight', 'bold');
-            pinT.setAttribute('fill', '#fff'); pinT.textContent = '!';
-            svg.appendChild(pinT);
-        }
-        // ===== FIN A* =====
 
         // Helper: Normalizar String (eliminar acentos y minúsculas)
         function normalizeString(str) {
@@ -1256,7 +1140,7 @@ add_filter('show_admin_bar', '__return_false');
             }
 
             const filtered = filterProducts(); // Filtra el catálogo principal en tiempo real
-            
+
             // Mostrar sugerencias si hay texto
             if (val.length > 0) {
                 renderSuggestions(filtered);
@@ -1519,9 +1403,9 @@ add_filter('show_admin_bar', '__return_false');
             return bestCandidates[index];
         }
 
-        // Localizar Producto (Resaltar Zona + Ruta A*)
+        // Localizar Producto (Resaltar Zona) + Navegación
         window.locateProduct = function (productName, category) {
-            clearRoute();
+            // Restablecer zonas
             zones.forEach(z => z.classList.remove('active'));
             locationMsg.classList.remove('visible', 'msg-active', 'msg-green', 'msg-teal', 'msg-purple', 'msg-blue', 'msg-yellow');
 
@@ -1530,20 +1414,26 @@ add_filter('show_admin_bar', '__return_false');
             if (targetZone) {
                 targetZone.classList.add('active');
 
+                // Determinar clase de color
                 let colorClass = 'msg-active';
-                if (targetZone.classList.contains('zone-green'))  colorClass = 'msg-green';
-                else if (targetZone.classList.contains('zone-pink'))   colorClass = 'msg-pink';
+                if (targetZone.classList.contains('zone-green')) colorClass = 'msg-green';
+                else if (targetZone.classList.contains('zone-pink')) colorClass = 'msg-pink';
                 else if (targetZone.classList.contains('zone-purple')) colorClass = 'msg-purple';
-                else if (targetZone.classList.contains('zone-blue'))   colorClass = 'msg-blue';
+                else if (targetZone.classList.contains('zone-blue')) colorClass = 'msg-blue';
                 else if (targetZone.classList.contains('zone-yellow')) colorClass = 'msg-yellow';
 
+                // Mostrar mensaje con icono
                 locationMsg.innerHTML = `<span class="dashicons dashicons-location-alt"></span> Ubicación: ${targetZone.dataset.loc}`;
                 locationMsg.className = `location-message visible ${colorClass}`;
 
-                // Dibujar ruta A* con línea animada y chincheta
-                drawRoute(targetZone);
-
+                // Desplazar al inicio del mapa
                 document.querySelector('.croquis-section').scrollIntoView({ behavior: 'smooth' });
+
+                // === NUEVO: Trazar ruta de navegación ===
+                if (window.NAV && window.NAV.navigateTo) {
+                    window.NAV.navigateTo(targetZone);
+                }
+
             } else {
                 locationMsg.textContent = 'No se encontró la ubicación de este producto.';
                 locationMsg.className = 'location-message visible';
@@ -1608,7 +1498,6 @@ add_filter('show_admin_bar', '__return_false');
                     const vW = window.innerWidth;
                     const vH = window.innerHeight;
                     let left, top;
-
                     if (vW < 768) {
                         // Móvil: centrar horizontalmente
                         left = Math.max(8, (vW - tW) / 2);
@@ -1635,21 +1524,305 @@ add_filter('show_admin_bar', '__return_false');
 
         // Escucha de Click Global para Deselección
         document.addEventListener('click', function (event) {
-            // Comprobar si el click está dentro del mapa/croquis
             const isClickInsideMap = event.target.closest('.croquis-wrapper');
-            // Comprobar si el click está en un botón "Ubicar"
             const isClickOnLocateBtn = event.target.closest('.btn-locate');
-            // Comprobar si el click está en el mensaje de ubicación
             const isClickOnMsg = event.target.closest('.location-message');
 
-            // Si el click es FUERA del mapa, FUERA de botones ubicar y FUERA del mensaje -> Limpiar Selección y ruta
             if (!isClickInsideMap && !isClickOnLocateBtn && !isClickOnMsg) {
                 zones.forEach(z => z.classList.remove('active'));
-                locationMsg.classList.remove('visible', 'msg-active', 'msg-green', 'msg-teal', 'msg-purple', 'msg-blue',
-                    'msg-yellow');
-                clearRoute();
+                locationMsg.classList.remove('visible', 'msg-active', 'msg-green', 'msg-teal', 'msg-purple', 'msg-blue', 'msg-yellow');
+                // Limpiar navegación también
+                if (window.NAV && window.NAV.clear) window.NAV.clear();
             }
         });
+        // ================================================================
+        // SISTEMA DE NAVEGACIÓN - Chincheta + Pathfinding BFS
+        // ================================================================
+        ;(function() {
+            const CURRENT_STORE = <?php echo json_encode($store_name); ?>;
+            const wrapper = document.querySelector('.croquis-wrapper');
+            const mapPin = document.getElementById('map-pin');
+            const routeSolid = document.getElementById('route-solid');
+            const routeDash = document.getElementById('route-dash');
+
+            // Límites del borde negro (% del wrapper)
+            const B = { x0: 12, y0: 10, x1: 89, y1: 88 };
+
+            let pinPos = null; // {x,y} en %
+
+            // ---- GRAFOS DE PASILLOS (nodos en % del wrapper) ----
+            // Coordenadas calculadas a partir de las zonas PHP reales.
+            // Los nodos están SIEMPRE en pasillos (espacios entre estanterías), nunca encima de ellas.
+            const GRAPHS = {
+                //
+                // LOGROÑO – cuadrícula simple con 2 filas de estanterías verticales
+                // Columnas de estant. (x izq-der): 12-16, 20-24, 30-34, 39-43, 49-53, 58-62, 76-80, 85-88
+                // Pasillos verticales entre ellas:  x=18, x=27, x=36, x=46, x=55, x=69, x=83
+                // Filas: fila sup y≈14-46, fila inf y≈52-80. Pasillos hor: y=11, y=49, y=83
+                //
+                'Logroño': {
+                    start: 'E',
+                    nodes: {
+                        'E':  {x:47,y:89},
+                        'BL': {x:14,y:83},'B0':{x:18,y:83},'B1':{x:27,y:83},'B2':{x:36,y:83},
+                        'B3': {x:46,y:83},'B4':{x:55,y:83},'B5':{x:69,y:83},'B6':{x:83,y:83},'BR':{x:89,y:83},
+                        'ML': {x:14,y:49},'M0':{x:18,y:49},'M1':{x:27,y:49},'M2':{x:36,y:49},
+                        'M3': {x:46,y:49},'M4':{x:55,y:49},'M5':{x:69,y:49},'M6':{x:83,y:49},'MR':{x:89,y:49},
+                        'TL': {x:14,y:11},'T0':{x:18,y:11},'T1':{x:27,y:11},'T2':{x:36,y:11},
+                        'T3': {x:46,y:11},'T4':{x:55,y:11},'T5':{x:69,y:11},'T6':{x:83,y:11},'TR':{x:89,y:11}
+                    },
+                    edges: [
+                        ['E','B3'],
+                        ['BL','B0'],['B0','B1'],['B1','B2'],['B2','B3'],['B3','B4'],['B4','B5'],['B5','B6'],['B6','BR'],
+                        ['ML','M0'],['M0','M1'],['M1','M2'],['M2','M3'],['M3','M4'],['M4','M5'],['M5','M6'],['M6','MR'],
+                        ['TL','T0'],['T0','T1'],['T1','T2'],['T2','T3'],['T3','T4'],['T4','T5'],['T5','T6'],['T6','TR'],
+                        ['TL','ML'],['ML','BL'],
+                        ['T0','M0'],['M0','B0'],['T1','M1'],['M1','B1'],['T2','M2'],['M2','B2'],
+                        ['T3','M3'],['M3','B3'],['T4','M4'],['M4','B4'],
+                        ['T5','M5'],['M5','B5'],['T6','M6'],['M6','B6'],
+                        ['TR','MR'],['MR','BR']
+                    ]
+                },
+
+                // MADRID – isla central x=28-53, y=33-63
+                // Pasillos: x=19 (entre cols verdes), x=27 (izda isla), x=55 (dcha isla)
+                // Cols dcha: x=65, x=74, x=83. Sin nodos fuera del mapa (max x=88, max y=88)
+                //
+                'Madrid': {
+                    start: 'E',
+                    nodes: {
+                        'E':   {x:47,y:87},
+                        // Pasillo inferior (y=83)
+                        'B0':  {x:14,y:83},'B1':{x:19,y:83},'B2':{x:27,y:83},
+                        'BI1': {x:37,y:83},'BI2':{x:47,y:83},'BI3':{x:55,y:83},
+                        'B3':  {x:65,y:83},'B4':{x:74,y:83},'B5':{x:83,y:83},
+                        // Pasillo superior (y=11)
+                        'T0':  {x:14,y:11},'T1':{x:19,y:11},'T2':{x:27,y:11},
+                        'T3':  {x:37,y:11},'T4':{x:47,y:11},'T5':{x:55,y:11},
+                        'T6':  {x:65,y:11},'T7':{x:74,y:11},'T8':{x:83,y:11},
+                        // Pasillo x=19 (entre los dos cols verdes izq)
+                        'LM1': {x:19,y:31},'LM2':{x:19,y:49},'LM3':{x:19,y:65},
+                        // Pasillo izquierdo de isla (x=27)
+                        'LI1': {x:27,y:31},'LI2':{x:27,y:49},'LI3':{x:27,y:65},
+                        // Pasillo derecho de isla (x=55)
+                        'RI1': {x:55,y:31},'RI2':{x:55,y:49},'RI3':{x:55,y:65},
+                        // Pasillos columnas derecha
+                        'R1T': {x:65,y:31},'R1M':{x:65,y:49},'R1B':{x:65,y:65},
+                        'R2T': {x:74,y:31},'R2M':{x:74,y:49},'R2B':{x:74,y:65},
+                        'R3T': {x:83,y:31},'R3M':{x:83,y:49},'R3B':{x:83,y:65}
+                    },
+                    edges: [
+                        ['E','BI2'],
+                        // Pasillo inferior
+                        ['B0','B1'],['B1','B2'],['B2','BI1'],['BI1','BI2'],['BI2','BI3'],['BI3','B3'],['B3','B4'],['B4','B5'],
+                        // Pasillo superior
+                        ['T0','T1'],['T1','T2'],['T2','T3'],['T3','T4'],['T4','T5'],['T5','T6'],['T6','T7'],['T7','T8'],
+                        // Extremo izq (x=14): conecta techo con suelo directo
+                        ['T0','LM1'],['LM1','LM2'],['LM2','LM3'],['LM3','B0'],
+                        // Lane x=19 (entre cols verdes) une con x=14 izq y x=27 dcha
+                        ['T1','LM1'],['LM3','B1'],
+                        // Lane x=27 -- izquierda de isla
+                        ['T2','LI1'],['LI1','LI2'],['LI2','LI3'],['LI3','B2'],
+                        // Lane x=55 -- derecha de isla
+                        ['T5','RI1'],['RI1','RI2'],['RI2','RI3'],['RI3','BI3'],
+                        // Lanes derechas (x=65,74,83)
+                        ['T6','R1T'],['R1T','R1M'],['R1M','R1B'],['R1B','B3'],
+                        ['T7','R2T'],['R2T','R2M'],['R2M','R2B'],['R2B','B4'],
+                        ['T8','R3T'],['R3T','R3M'],['R3M','R3B'],['R3B','B5'],
+                        // Horizontales IZQUIERDA (y=31, y=49, y=65) entre x=19 y x=27
+                        ['LM1','LI1'],
+                        ['LM2','LI2'],
+                        ['LM3','LI3'],
+                        // Horizontales DERECHA (y=31, y=49, y=65) entre x=55 y x=83
+                        ['RI1','R1T'],['R1T','R2T'],['R2T','R3T'],
+                        ['RI2','R1M'],['R1M','R2M'],['R2M','R3M'],
+                        ['RI3','R1B'],['R1B','R2B'],['R2B','R3B']
+                    ]
+                },
+
+                //
+                // VALENCIA – cuadrícula simple (similar a Logroño)
+                // Cols x: 12-16, 21-26, 31-35, 37-42, 49-54, 58-63, 68-72, 77-81, 84-88
+                // Pasillos vert: x=18, x=28, x=36(?), x=46, x=56, x=65, x=74, x=82
+                //
+                'Valencia': {
+                    start: 'E',
+                    nodes: {
+                        'E':  {x:47,y:89},
+                        'BL': {x:14,y:83},'B0':{x:18,y:83},'B1':{x:28,y:83},'B2':{x:37,y:83},
+                        'B3': {x:46,y:83},'B4':{x:56,y:83},'B5':{x:65,y:83},'B6':{x:74,y:83},'B7':{x:83,y:83},'BR':{x:89,y:83},
+                        'ML': {x:14,y:49},'M0':{x:18,y:49},'M1':{x:28,y:49},'M2':{x:37,y:49},
+                        'M3': {x:46,y:49},'M4':{x:56,y:49},'M5':{x:65,y:49},'M6':{x:74,y:49},'M7':{x:83,y:49},'MR':{x:89,y:49},
+                        'TL': {x:14,y:11},'T0':{x:18,y:11},'T1':{x:28,y:11},'T2':{x:37,y:11},
+                        'T3': {x:46,y:11},'T4':{x:56,y:11},'T5':{x:65,y:11},'T6':{x:74,y:11},'T7':{x:83,y:11},'TR':{x:89,y:11}
+                    },
+                    edges: [
+                        ['E','B3'],
+                        ['BL','B0'],['B0','B1'],['B1','B2'],['B2','B3'],['B3','B4'],['B4','B5'],['B5','B6'],['B6','B7'],['B7','BR'],
+                        ['ML','M0'],['M0','M1'],['M1','M2'],['M2','M3'],['M3','M4'],['M4','M5'],['M5','M6'],['M6','M7'],['M7','MR'],
+                        ['TL','T0'],['T0','T1'],['T1','T2'],['T2','T3'],['T3','T4'],['T4','T5'],['T5','T6'],['T6','T7'],['T7','TR'],
+                        ['TL','ML'],['ML','BL'],['T0','M0'],['M0','B0'],['T1','M1'],['M1','B1'],
+                        ['T2','M2'],['M2','B2'],['T3','M3'],['M3','B3'],['T4','M4'],['M4','B4'],
+                        ['T5','M5'],['M5','B5'],['T6','M6'],['M6','B6'],['T7','M7'],['M7','B7'],['TR','MR'],['MR','BR']
+                    ]
+                },
+
+                //
+                // ZARAGOZA – cuadrícula 3 filas horizontales
+                //
+                'Zaragoza': {
+                    start: 'E',
+                    nodes: {
+                        'E':  {x:47,y:89},
+                        'BL': {x:14,y:83},'B0':{x:18,y:83},'B1':{x:28,y:83},'B2':{x:37,y:83},
+                        'B3': {x:47,y:83},'B4':{x:57,y:83},'B5':{x:67,y:83},'B6':{x:76,y:83},'BR':{x:88,y:83},
+                        'ML': {x:14,y:57},'M0':{x:18,y:57},'M1':{x:28,y:57},'M2':{x:37,y:57},
+                        'M3': {x:47,y:57},'M4':{x:57,y:57},'M5':{x:67,y:57},'M6':{x:76,y:57},'MR':{x:88,y:57},
+                        'UL': {x:14,y:31},'U0':{x:18,y:31},'U1':{x:28,y:31},'U2':{x:37,y:31},
+                        'U3': {x:47,y:31},'U4':{x:57,y:31},'U5':{x:67,y:31},'U6':{x:76,y:31},'UR':{x:88,y:31},
+                        'TL': {x:14,y:11},'T0':{x:18,y:11},'T1':{x:28,y:11},'T2':{x:37,y:11},
+                        'T3': {x:47,y:11},'T4':{x:57,y:11},'T5':{x:67,y:11},'T6':{x:76,y:11},'TR':{x:88,y:11}
+                    },
+                    edges: [
+                        ['E','B3'],
+                        ['BL','B0'],['B0','B1'],['B1','B2'],['B2','B3'],['B3','B4'],['B4','B5'],['B5','B6'],['B6','BR'],
+                        ['ML','M0'],['M0','M1'],['M1','M2'],['M2','M3'],['M3','M4'],['M4','M5'],['M5','M6'],['M6','MR'],
+                        ['UL','U0'],['U0','U1'],['U1','U2'],['U2','U3'],['U3','U4'],['U4','U5'],['U5','U6'],['U6','UR'],
+                        ['TL','T0'],['T0','T1'],['T1','T2'],['T2','T3'],['T3','T4'],['T4','T5'],['T5','T6'],['T6','TR'],
+                        ['TL','UL'],['UL','ML'],['ML','BL'],['T0','U0'],['U0','M0'],['M0','B0'],
+                        ['T1','U1'],['U1','M1'],['M1','B1'],['T2','U2'],['U2','M2'],['M2','B2'],
+                        ['T3','U3'],['U3','M3'],['M3','B3'],['T4','U4'],['U4','M4'],['M4','B4'],
+                        ['T5','U5'],['U5','M5'],['M5','B5'],['T6','U6'],['U6','M6'],['M6','B6'],
+                        ['TR','UR'],['UR','MR'],['MR','BR']
+                    ]
+                }
+            };
+
+            // ---- Funciones auxiliares ----
+            function getGraph() {
+                return GRAPHS[CURRENT_STORE] || GRAPHS['Logroño'];
+            }
+
+            function nearestNode(graph, px, py) {
+                let bestId = null, bestDist = Infinity;
+                for (const [id, n] of Object.entries(graph.nodes)) {
+                    const d = Math.hypot(n.x - px, n.y - py);
+                    if (d < bestDist) { bestDist = d; bestId = id; }
+                }
+                return bestId;
+            }
+
+            function buildAdj(graph) {
+                const adj = {};
+                for (const id of Object.keys(graph.nodes)) adj[id] = [];
+                for (const [a, b] of graph.edges) {
+                    if (adj[a]) adj[a].push(b);
+                    if (adj[b]) adj[b].push(a);
+                }
+                return adj;
+            }
+
+            function bfs(graph, startId, endId) {
+                if (startId === endId) return [startId];
+                const adj = buildAdj(graph);
+                const visited = new Set([startId]);
+                const queue = [[startId]];
+                while (queue.length) {
+                    const path = queue.shift();
+                    const curr = path[path.length - 1];
+                    for (const nb of (adj[curr] || [])) {
+                        if (nb === endId) return [...path, nb];
+                        if (!visited.has(nb)) {
+                            visited.add(nb);
+                            queue.push([...path, nb]);
+                        }
+                    }
+                }
+                return null;
+            }
+
+            function drawPath(graph, nodeIds) {
+                if (!nodeIds || nodeIds.length < 2) {
+                    routeSolid.style.display = 'none';
+                    routeDash.style.display = 'none';
+                    return;
+                }
+                const W = wrapper.offsetWidth, H = wrapper.offsetHeight;
+                const pts = nodeIds.map(id => {
+                    const n = graph.nodes[id];
+                    return `${(n.x / 100) * W},${(n.y / 100) * H}`;
+                });
+                const d = 'M ' + pts.join(' L ');
+                routeSolid.setAttribute('d', d);
+                routeDash.setAttribute('d', d);
+                routeSolid.style.display = '';
+                routeDash.style.display = '';
+                // Animación de dibujo progresivo
+                try {
+                    const len = routeSolid.getTotalLength();
+                    routeSolid.style.strokeDasharray = len;
+                    routeSolid.style.strokeDashoffset = len;
+                    routeSolid.animate(
+                        [{ strokeDashoffset: len }, { strokeDashoffset: 0 }],
+                        { duration: 900, fill: 'forwards', easing: 'ease-out' }
+                    );
+                } catch (e) { }
+            }
+
+            // ---- API pública ----
+            window.NAV = {
+                navigateTo: function (targetZone) {
+                    const graph = getGraph();
+                    const zTop = parseFloat(targetZone.style.top);
+                    const zLeft = parseFloat(targetZone.style.left);
+                    const zWidth = parseFloat(targetZone.style.width);
+                    const zHeight = parseFloat(targetZone.style.height);
+                    const destX = zLeft + zWidth / 2;
+                    const destY = zTop + zHeight / 2;
+
+                    const startId = pinPos
+                        ? nearestNode(graph, pinPos.x, pinPos.y)
+                        : graph.start;
+                    const endId = nearestNode(graph, destX, destY);
+
+                    const path = bfs(graph, startId, endId);
+                    drawPath(graph, path || [startId, endId]);
+                },
+                clear: function () {
+                    routeSolid.style.display = 'none';
+                    routeDash.style.display = 'none';
+                    pinPos = null;
+                    mapPin.style.display = 'none';
+                }
+            };
+
+            // ---- Click en el mapa para PIN ----
+            wrapper.addEventListener('click', function (e) {
+                // Ignorar clicks en botones internos
+                if (e.target.closest('.btn-locate') || e.target.closest('.btn-navigate')) return;
+
+                const rect = wrapper.getBoundingClientRect();
+                const cx = ((e.clientX - rect.left) / rect.width) * 100;
+                const cy = ((e.clientY - rect.top) / rect.height) * 100;
+
+                if (cx >= B.x0 && cx <= B.x1 && cy >= B.y0 && cy <= B.y1) {
+                    // Dentro de los límites: colocar chincheta
+                    pinPos = { x: cx, y: cy };
+                    mapPin.style.left = cx + '%';
+                    mapPin.style.top = cy + '%';
+                    mapPin.style.display = 'block';
+                    // Borrar ruta anterior al mover pin
+                    routeSolid.style.display = 'none';
+                    routeDash.style.display = 'none';
+                } else {
+                    // Fuera del borde: limpiar todo
+                    window.NAV.clear();
+                    document.querySelectorAll('.zone-overlay').forEach(z => z.classList.remove('active'));
+                    const lm = document.getElementById('location-msg');
+                    if (lm) lm.className = 'location-message';
+                }
+            });
+        })();
     </script>
 </body>
 
