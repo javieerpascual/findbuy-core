@@ -724,6 +724,39 @@ add_filter('show_admin_bar', '__return_false');
                 max-width: 100%;
             }
         }
+
+        /* ===== A* Route Overlay ===== */
+        #route-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+            overflow: visible;
+        }
+        .route-line {
+            fill: none;
+            stroke: #FA8063;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 3000;
+            stroke-dashoffset: 3000;
+            animation: draw-route 1.2s ease-out forwards;
+        }
+        @keyframes draw-route {
+            to { stroke-dashoffset: 0; }
+        }
+        .entry-dot { fill: #2d3748; }
+        .pin-bg { fill: #FA8063; }
+        /* ===== Tooltip Móvil ===== */
+        @media (max-width: 768px) {
+            .custom-tooltip {
+                max-width: calc(100vw - 32px) !important;
+            }
+        }
     </style>
     <script>
         document.title = "Tienda Física - Find&Buy";
@@ -891,6 +924,7 @@ add_filter('show_admin_bar', '__return_false');
                     );
                 }
                 ?>
+                <svg id="route-svg" xmlns="http://www.w3.org/2000/svg"></svg>
 
             </div>
 
@@ -957,6 +991,167 @@ add_filter('show_admin_bar', '__return_false');
 
         let shoppingList = [];
         let currentCategoryFilter = 'all';
+
+        // ===== A* PATHFINDING =====
+        const GRID = 100;
+
+        function buildObstacleGrid() {
+            const grid = [];
+            for (let i = 0; i < GRID; i++) grid.push(new Uint8Array(GRID));
+            zones.forEach(zone => {
+                const t = parseFloat(zone.style.top);
+                const l = parseFloat(zone.style.left);
+                const w = parseFloat(zone.style.width);
+                const h = parseFloat(zone.style.height);
+                const r0 = Math.ceil(t) + 1,  r1 = Math.floor(t + h) - 1;
+                const c0 = Math.ceil(l) + 1,  c1 = Math.floor(l + w) - 1;
+                for (let r = Math.max(0, r0); r <= Math.min(GRID - 1, r1); r++)
+                    for (let c = Math.max(0, c0); c <= Math.min(GRID - 1, c1); c++)
+                        grid[r][c] = 1;
+            });
+            return grid;
+        }
+
+        function astar(grid, sr, sc, er, ec) {
+            const INF = 1e9;
+            const g = [], parent = [];
+            for (let i = 0; i < GRID; i++) {
+                g.push(new Float32Array(GRID).fill(INF));
+                parent.push(new Array(GRID).fill(null));
+            }
+            g[sr][sc] = 0;
+            const open = [[Math.abs(sr - er) + Math.abs(sc - ec), sr, sc]];
+            const dirs = [[0,1,1],[0,-1,1],[1,0,1],[-1,0,1],[1,1,1.414],[1,-1,1.414],[-1,1,1.414],[-1,-1,1.414]];
+            while (open.length) {
+                let mi = 0;
+                for (let i = 1; i < open.length; i++) if (open[i][0] < open[mi][0]) mi = i;
+                const [, r, c] = open.splice(mi, 1)[0];
+                if (r === er && c === ec) {
+                    const path = [];
+                    let cur = [r, c];
+                    while (cur) { path.unshift(cur); cur = parent[cur[0]][cur[1]]; }
+                    return path;
+                }
+                for (const [dr, dc, cost] of dirs) {
+                    const nr = r + dr, nc = c + dc;
+                    if (nr < 0 || nr >= GRID || nc < 0 || nc >= GRID || grid[nr][nc]) continue;
+                    const ng = g[r][c] + cost;
+                    if (ng < g[nr][nc]) {
+                        g[nr][nc] = ng;
+                        parent[nr][nc] = [r, c];
+                        open.push([ng + Math.abs(nr - er) + Math.abs(nc - ec), nr, nc]);
+                    }
+                }
+            }
+            return null;
+        }
+
+        function findNearestWalkable(grid, r, c) {
+            r = Math.max(0, Math.min(GRID - 1, r));
+            c = Math.max(0, Math.min(GRID - 1, c));
+            if (!grid[r][c]) return [r, c];
+            const visited = new Set([`${r},${c}`]);
+            const q = [[r, c]];
+            const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+            while (q.length) {
+                const [cr, cc] = q.shift();
+                for (const [dr, dc] of dirs) {
+                    const nr = cr + dr, nc = cc + dc;
+                    if (nr < 0 || nr >= GRID || nc < 0 || nc >= GRID) continue;
+                    const key = `${nr},${nc}`;
+                    if (visited.has(key)) continue;
+                    visited.add(key);
+                    if (!grid[nr][nc]) return [nr, nc];
+                    q.push([nr, nc]);
+                }
+            }
+            return [r, c];
+        }
+
+        function simplifyPath(path, step) {
+            if (path.length <= 2) return path;
+            const res = [path[0]];
+            for (let i = step; i < path.length - 1; i += step) res.push(path[i]);
+            res.push(path[path.length - 1]);
+            return res;
+        }
+
+        function clearRoute() {
+            const svg = document.getElementById('route-svg');
+            if (svg) while (svg.firstChild) svg.removeChild(svg.firstChild);
+        }
+
+        function drawRoute(targetZone) {
+            const svg = document.getElementById('route-svg');
+            while (svg.firstChild) svg.removeChild(svg.firstChild);
+            if (!targetZone) return;
+
+            const wrapper = document.querySelector('.croquis-wrapper');
+            const wW = wrapper.offsetWidth;
+            const wH = wrapper.offsetHeight;
+            function px(pctLeft, pctTop) {
+                return [pctLeft / 100 * wW, pctTop / 100 * wH];
+            }
+
+            const ENTRY_TOP = 91, ENTRY_LEFT = 50;
+
+            const zTop  = parseFloat(targetZone.style.top);
+            const zLeft = parseFloat(targetZone.style.left);
+            const zW    = parseFloat(targetZone.style.width);
+            const zH    = parseFloat(targetZone.style.height);
+            const destTop  = zTop + zH / 2;
+            const destLeft = zLeft + zW / 2;
+
+            const grid = buildObstacleGrid();
+            const sr = Math.round(ENTRY_TOP), sc = Math.round(ENTRY_LEFT);
+            const [er, ec] = findNearestWalkable(grid, Math.round(destTop), Math.round(destLeft));
+
+            const rawPath = astar(grid, sr, sc, er, ec);
+            const path = rawPath ? simplifyPath(rawPath, 4) : [[sr, sc], [er, ec]];
+
+            // Polyline animada
+            const pts = path.map(([r, c]) => { const [x, y] = px(c, r); return `${x},${y}`; }).join(' ');
+            const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            poly.setAttribute('points', pts);
+            poly.classList.add('route-line');
+            svg.appendChild(poly);
+
+            // Punto de entrada
+            const [ex, ey] = px(ENTRY_LEFT, ENTRY_TOP);
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', ex); dot.setAttribute('cy', ey); dot.setAttribute('r', 5);
+            dot.classList.add('entry-dot');
+            svg.appendChild(dot);
+
+            // Chincheta en destino
+            const [dx, dy] = px(destLeft, destTop);
+
+            const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            ring.setAttribute('cx', dx); ring.setAttribute('cy', dy); ring.setAttribute('r', 8);
+            ring.setAttribute('fill', 'rgba(250,128,99,0.3)');
+            const animR = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+            animR.setAttribute('attributeName', 'r'); animR.setAttribute('values', '8;22;8');
+            animR.setAttribute('dur', '1.5s'); animR.setAttribute('repeatCount', 'indefinite');
+            const animO = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+            animO.setAttribute('attributeName', 'opacity'); animO.setAttribute('values', '0.8;0;0.8');
+            animO.setAttribute('dur', '1.5s'); animO.setAttribute('repeatCount', 'indefinite');
+            ring.appendChild(animR); ring.appendChild(animO);
+            svg.appendChild(ring);
+
+            const pinC = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            pinC.setAttribute('cx', dx); pinC.setAttribute('cy', dy); pinC.setAttribute('r', 9);
+            pinC.setAttribute('fill', '#FA8063');
+            pinC.setAttribute('stroke', '#fff'); pinC.setAttribute('stroke-width', '2');
+            svg.appendChild(pinC);
+
+            const pinT = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            pinT.setAttribute('x', dx); pinT.setAttribute('y', dy + 4);
+            pinT.setAttribute('text-anchor', 'middle');
+            pinT.setAttribute('font-size', '11'); pinT.setAttribute('font-weight', 'bold');
+            pinT.setAttribute('fill', '#fff'); pinT.textContent = '!';
+            svg.appendChild(pinT);
+        }
+        // ===== FIN A* =====
 
         // Helper: Normalizar String (eliminar acentos y minúsculas)
         function normalizeString(str) {
@@ -1324,9 +1519,9 @@ add_filter('show_admin_bar', '__return_false');
             return bestCandidates[index];
         }
 
-        // Localizar Producto (Resaltar Zona)
+        // Localizar Producto (Resaltar Zona + Ruta A*)
         window.locateProduct = function (productName, category) {
-            // Restablecer zonas
+            clearRoute();
             zones.forEach(z => z.classList.remove('active'));
             locationMsg.classList.remove('visible', 'msg-active', 'msg-green', 'msg-teal', 'msg-purple', 'msg-blue', 'msg-yellow');
 
@@ -1335,21 +1530,20 @@ add_filter('show_admin_bar', '__return_false');
             if (targetZone) {
                 targetZone.classList.add('active');
 
-                // Determinar clase de color
-                let colorClass = 'msg-active'; // Respaldo por defecto
-                if (targetZone.classList.contains('zone-green')) colorClass = 'msg-green';
-                else if (targetZone.classList.contains('zone-pink')) colorClass = 'msg-pink';
+                let colorClass = 'msg-active';
+                if (targetZone.classList.contains('zone-green'))  colorClass = 'msg-green';
+                else if (targetZone.classList.contains('zone-pink'))   colorClass = 'msg-pink';
                 else if (targetZone.classList.contains('zone-purple')) colorClass = 'msg-purple';
-                else if (targetZone.classList.contains('zone-blue')) colorClass = 'msg-blue';
+                else if (targetZone.classList.contains('zone-blue'))   colorClass = 'msg-blue';
                 else if (targetZone.classList.contains('zone-yellow')) colorClass = 'msg-yellow';
 
-                // Mostrar mensaje con icono
                 locationMsg.innerHTML = `<span class="dashicons dashicons-location-alt"></span> Ubicación: ${targetZone.dataset.loc}`;
                 locationMsg.className = `location-message visible ${colorClass}`;
 
-                // Desplazar al inicio del mapa para asegurar visibilidad
-                document.querySelector('.croquis-section').scrollIntoView({ behavior: 'smooth' });
+                // Dibujar ruta A* con línea animada y chincheta
+                drawRoute(targetZone);
 
+                document.querySelector('.croquis-section').scrollIntoView({ behavior: 'smooth' });
             } else {
                 locationMsg.textContent = 'No se encontró la ubicación de este producto.';
                 locationMsg.className = 'location-message visible';
@@ -1406,18 +1600,30 @@ add_filter('show_admin_bar', '__return_false');
                 tooltip.innerHTML = content;
                 tooltip.classList.add('visible');
 
-                // Posicionar tooltip cerca de la zona (posición fija basada en entrada del mouse)
-                const rect = zone.getBoundingClientRect();
-                const tooltipX = rect.right + 10;
-                const tooltipY = rect.top;
+                // Posicionamiento adaptativo: centrado en móvil, nunca fuera de pantalla
+                requestAnimationFrame(() => {
+                    const rect = zone.getBoundingClientRect();
+                    const tW = tooltip.offsetWidth || 250;
+                    const tH = tooltip.offsetHeight || 150;
+                    const vW = window.innerWidth;
+                    const vH = window.innerHeight;
+                    let left, top;
 
-                // Chequeo simple de límites
-                if (tooltipX + 250 > window.innerWidth) {
-                    tooltip.style.left = (rect.left - 260) + 'px'; // Mostrar a la izquierda si no hay espacio a la derecha
-                } else {
-                    tooltip.style.left = tooltipX + 'px';
-                }
-                tooltip.style.top = tooltipY + 'px';
+                    if (vW < 768) {
+                        // Móvil: centrar horizontalmente
+                        left = Math.max(8, (vW - tW) / 2);
+                        top = rect.top - tH - 10 > 8 ? rect.top - tH - 10 : rect.bottom + 10;
+                    } else {
+                        // Desktop: derecha si cabe, si no izquierda
+                        left = rect.right + tW + 10 <= vW ? rect.right + 10 : rect.left - tW - 10;
+                        top = rect.top;
+                    }
+                    // Clamp para no salirse de pantalla
+                    left = Math.max(8, Math.min(left, vW - tW - 8));
+                    top  = Math.max(8, Math.min(top,  vH - tH - 8));
+                    tooltip.style.left = left + 'px';
+                    tooltip.style.top  = top  + 'px';
+                });
             });
 
             zone.addEventListener('mouseleave', () => {
@@ -1436,11 +1642,12 @@ add_filter('show_admin_bar', '__return_false');
             // Comprobar si el click está en el mensaje de ubicación
             const isClickOnMsg = event.target.closest('.location-message');
 
-            // Si el click es FUERA del mapa, FUERA de botones ubicar y FUERA del mensaje -> Limpiar Selección
+            // Si el click es FUERA del mapa, FUERA de botones ubicar y FUERA del mensaje -> Limpiar Selección y ruta
             if (!isClickInsideMap && !isClickOnLocateBtn && !isClickOnMsg) {
                 zones.forEach(z => z.classList.remove('active'));
                 locationMsg.classList.remove('visible', 'msg-active', 'msg-green', 'msg-teal', 'msg-purple', 'msg-blue',
                     'msg-yellow');
+                clearRoute();
             }
         });
     </script>
