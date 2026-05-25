@@ -204,52 +204,30 @@ get_header();
                             foundStore.classList.add('highlighted');
                             foundStore.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                            // URL de la tienda para el auto-redirect
-                            var storeBtn = foundStore.querySelector('.btn-store');
-                            var storeUrl = storeBtn ? storeBtn.href : null;
-
                             if (isExact) {
                                 resultMsg.textContent = '¡Buenas noticias! Tenemos tienda disponible en ' + storeName + ' (' + data.municipio + ').';
                                 resultMsg.className = 'success';
                                 foundStore.style.transform = 'scale(1.05)';
-                                foundStore.style.border = '2px solid #FA8063';
-                                foundStore.style.boxShadow = '0 10px 25px rgba(250, 128, 99, 0.25)';
+                                foundStore.style.border = '2px solid #48BB78';
+                                foundStore.style.boxShadow = '0 10px 25px rgba(72, 187, 120, 0.25)';
                             } else {
-                                resultMsg.textContent = 'No tenemos tienda en ' + data.municipio + ' (' + data.provincia + '), pero tu tienda Find&Buy más cercana es: ' + storeName + '.';
+                                resultMsg.textContent = 'No tenemos tienda en ' + data.municipio + ' (' + data.provincia + '), pero tu tienda más cercana es: ' + storeName + '.';
                                 resultMsg.className = 'warning';
                                 foundStore.style.transform = 'scale(1.05)';
-                                foundStore.style.border = '2px dashed #FA8063';
-                                foundStore.style.boxShadow = '0 10px 25px rgba(250, 128, 99, 0.15)';
+                                foundStore.style.border = '2px dashed #D97706';
+                                foundStore.style.boxShadow = '0 10px 25px rgba(217, 119, 6, 0.2)';
                             }
 
-                            // Countdown + auto-redirect a la tienda
-                            if (storeUrl) {
-                                var seconds = 4;
-                                var baseMsg = resultMsg.textContent;
-                                resultLocked = true;
-                                clearTimeout(lockTimer);
-
-                                var countInterval = setInterval(function () {
-                                    seconds--;
-                                    if (seconds > 0) {
-                                        resultMsg.textContent = baseMsg + ' Accediendo en ' + seconds + '...';
-                                    } else {
-                                        clearInterval(countInterval);
-                                        window.location.href = storeUrl;
-                                    }
-                                }, 1000);
-                            } else {
-                                // Sin URL: comportamiento anterior (resaltado 8 s)
-                                resultLocked = true;
-                                clearTimeout(lockTimer);
-                                lockTimer = setTimeout(function () {
-                                    foundStore.style.transform = '';
-                                    foundStore.style.border = '';
-                                    foundStore.style.boxShadow = '';
-                                    foundStore.classList.remove('highlighted');
-                                    resultLocked = false;
-                                }, 8000);
-                            }
+                            // Mantener resaltado 8 segundos y luego limpiar
+                            resultLocked = true;
+                            clearTimeout(lockTimer);
+                            lockTimer = setTimeout(function () {
+                                foundStore.style.transform = '';
+                                foundStore.style.border = '';
+                                foundStore.style.boxShadow = '';
+                                foundStore.classList.remove('highlighted');
+                                resultLocked = false;
+                            }, 8000);
 
                         } else {
                             // No debería ocurrir si el mapeo cubre todo

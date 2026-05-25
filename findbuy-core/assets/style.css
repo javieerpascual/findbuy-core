@@ -1176,14 +1176,38 @@ textarea {
 
 #cp-result-message {
 	text-align: center !important;
-	/* CENTRADO */
 	margin-top: 15px;
 	min-height: 2.5rem !important;
-	/* FIJO: Reservar espacio amplio (aprox 40px) */
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 1.05rem;
+	font-size: 1rem;
+	font-weight: 600;
+	border-radius: 8px;
+	padding: 10px 18px;
+	transition: all 0.3s ease;
+	border-left: 4px solid transparent;
+}
+
+/* Tienda encontrada — verde */
+#cp-result-message.success {
+	background: #F0FFF4;
+	border-left-color: #48BB78;
+	color: #276749;
+}
+
+/* CP válido, tienda más cercana — ámbar */
+#cp-result-message.warning {
+	background: #FFFBEB;
+	border-left-color: #D97706;
+	color: #92400E;
+}
+
+/* CP incorrecto / no encontrado — rojo */
+#cp-result-message.error {
+	background: #FFF5F5;
+	border-left-color: #FC8181;
+	color: #C53030;
 }
 
 /* --- NUEVO: Estilos de Página de Contacto Premium (Forzado) --- */
@@ -1502,133 +1526,4 @@ p.stars a {
 .woocommerce-message a:hover {
 	text-decoration: none;
 	opacity: 0.8;
-}
-
-/* --- Buscador de Código Postal (Página Tiendas) --- */
-.cp-search-container {
-	max-width: 800px;
-	margin: 0 auto 60px auto;
-	padding: 50px 60px;
-	background: #fff;
-	border-radius: 12px;
-	box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-	text-align: center;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	border: 1px solid #EDF2F7;
-}
-
-.cp-search-container h3 {
-	font-size: 2rem;
-	margin-bottom: 15px;
-	color: #2D3748;
-}
-
-.cp-search-container p {
-	margin-bottom: 30px;
-	font-size: 1.1rem;
-	max-width: 600px;
-	color: #718096;
-}
-
-.cp-input-group {
-	display: flex;
-	gap: 15px;
-	align-items: center;
-	justify-content: center;
-	margin-bottom: 10px;
-	width: 100%;
-	max-width: 500px;
-}
-
-#cp-input {
-	padding: 15px 25px;
-	border: 2px solid #E2E8F0;
-	border-radius: 8px;
-	font-size: 1.1rem;
-	text-align: center;
-	flex: 1;
-	min-width: 0;
-	transition: border-color 0.2s ease;
-}
-
-#cp-input:focus {
-	border-color: #FA8063;
-	outline: none;
-}
-
-#cp-check-btn {
-	background: #2D3748;
-	border: 2px solid #FA8063;
-	padding: 15px 40px;
-	border-radius: 8px;
-	color: #fff;
-	font-weight: 700;
-	font-size: 1.1rem;
-	cursor: pointer;
-	transition: all 0.3s ease;
-	white-space: nowrap;
-	flex-shrink: 0;
-}
-
-#cp-check-btn:hover {
-	background: #2D3748;
-	color: #FA8063;
-	box-shadow: 0 10px 20px rgba(45, 55, 72, 0.2);
-	transform: translateY(-3px);
-}
-
-#cp-result-message {
-	text-align: center;
-	margin-top: 15px;
-	font-size: 1.05rem;
-	font-weight: 600;
-	min-height: 24px;
-}
-
-#cp-result-message.success {
-	color: #48BB78;
-}
-
-#cp-result-message.error {
-	color: #C05621;
-}
-
-#cp-result-message.warning {
-	color: #D69E2E;
-}
-
-/* Responsivo: Buscador CP en Móvil */
-@media (max-width: 600px) {
-	.cp-search-container {
-		padding: 30px 20px;
-		margin: 0 15px 40px 15px;
-	}
-
-	.cp-search-container h3 {
-		font-size: 1.5rem;
-	}
-
-	.cp-search-container p {
-		font-size: 1rem;
-		margin-bottom: 20px;
-	}
-
-	.cp-input-group {
-		flex-direction: column;
-		gap: 12px;
-	}
-
-	#cp-input {
-		width: 100%;
-		padding: 14px 20px;
-		font-size: 1rem;
-	}
-
-	#cp-check-btn {
-		width: 100%;
-		padding: 14px 20px;
-		font-size: 1rem;
-	}
 }
